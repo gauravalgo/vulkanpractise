@@ -26,7 +26,26 @@ int main() {
     float z = r*cos(theta);
     float x = r*sin(theta)*cos(phi);
     float y = r*sin(theta)*sin(phi);
-    
+    /* reverse conversion*/
+    if(std::hypot(x,y)<std::numeric_limits<float>::min())
+    {
+        r=std::abs(z);
+        theta=0;
+        phi=0;
+    }
+    else
+    {
+        r=std::hypot(x,y,z);
+        theta=std::arcsin(std::div(std::hypot(x,y),r));
+        if(y<0)
+        {
+            phi=2*180-std::atan2(y,x);
+        }
+        else
+        {
+            phi=std::atan2(y,x);
+        }
+    }
     glm::mat4 matrix;
     glm::vec4 vec;
     auto test = matrix * vec;
