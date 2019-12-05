@@ -10,4 +10,4 @@ r,theta,phi of point P
 //  angles
  thetha-> between r & Z projection of r on z axis (anticlockwise);
  Phi -> between r & X projection of r on x axis (anticlockwise)
-//   
+// 
