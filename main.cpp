@@ -9,11 +9,32 @@
 #include <cmath>
 #include <limits>
 #include <iostream>
-
+VkInstance instance;
 int main() {
     glfwInit();
     VkApplicationInfo appInfo;
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo.pNext=NULL;
+    appInfo.pApplicationName="Vulkan Tutorial";
+    appInfo.applicationVersion=VK_MAKE_VERSION(0,0,0);
+    appInfo.pEngineName = "my first vulkan engine";
+    appInfo.engineVersion=VK_MAKE_VERSION(1,0,0);
+    appInfo.apiVersion=VK_API_VERSION_1_0;
+    
+    VkInstanceCreateInfo instanceinfo;
+    
+    instanceinfo.sType= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    instanceinfo.pNext=NULL;
+    instanceinfo.flags=0;
+    instanceinfo.pApplicationInfo=&appInfo;
+    instanceinfo.enabledLayerCount=0;
+    instanceinfo.ppEnabledLayerNames=NULL;
+    instanceinfo.enabledExtensionCount=0;
+    instanceinfo.ppEnabledExtensionNames=NULL;
+    vkCreateInstance(&instanceinfo,NULL,&instance);
+    
+    
+    
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
 
