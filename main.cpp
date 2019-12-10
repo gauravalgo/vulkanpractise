@@ -18,7 +18,10 @@ void printstats(VkPhysicalDevice &device)
     uint32_t apiVersion=properties.apiVersion;
     std::cout<<"API VERSION :"<< VK_VERSION_MAJOR(apiVersion)<<"."<<VK_VERSION_MINOR(apiVersion)<<"."<<VK_VERSION_PATCH(apiVersion)<<std::endl;
     std::cout<<"DRIVER VERSION"<<properties.driverVersion<<std::endl;
+    std::cout<<"discrete queue properties"<<properties.limits.discreteQueuePriorities<<std::endl;
+    
     std::cout<< std::endl;
+    
 }
 int main() {
     glfwInit();
@@ -89,9 +92,15 @@ int main() {
     {
         std::cout<<std::endl;
         std::cout<<"Queue FAMILY #"<<i<<std::endl;
-        std::cout<<"VK_QUEUE_GRAPHICS_BIT "<<(queuefamilyProperties[i].queueFlags  & VK_QUEUE_GRAPHICS_BIT);
+        std::cout<<"VK_QUEUE_GRAPHICS_BIT "<<(queuefamilyProperties[i].queueFlags&VK_QUEUE_GRAPHICS_BIT);
     }
-    
+    VkDeviceQueueCreateInfo devicequeuecreateinfo;
+    devicequeuecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    devicequeuecreateinfo.pNext=NULL;
+    devicequeuecreateinfo.flags= 0;
+    devicequeuecreateinfo.queueFamilyIndex=0;
+    devicequeuecreateinfo.queueCount=4;
+    devicequeuecreateinfo.pQueuePriorities=NULL;
     
     
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
