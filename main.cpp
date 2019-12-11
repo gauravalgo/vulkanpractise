@@ -7,9 +7,13 @@
 #include <glm/mat4x4.hpp>
 #include <vulkan/vulkan.h>
 #include <cmath>
+#include <memory>
+#include <vector>
 #include <limits>
 #include <iostream>
 VkInstance instance;
+VkDevice dev;
+GLFWwindow* window;
 void printstats(VkPhysicalDevice &device)
 {
     VkPhysicalDeviceProperties properties;
@@ -23,11 +27,31 @@ void printstats(VkPhysicalDevice &device)
     std::cout<< std::endl;
     
 }
-int main() {
+void startGLfw()
+{
     glfwInit();
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+
+}
+void stopGLfw()
+{
+    while(!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+    }
+    
+    glfwDestroyWindow(window);
+    glfwTerminate();
+}
+void gameloop()
+{
+    
+}
+void startVulkan()
+{
     VkApplicationInfo appInfo;
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pNext=NULL;
+    appInfo.pNext=nullptr;
     appInfo.pApplicationName="Vulkan Tutorial";
     appInfo.applicationVersion=VK_MAKE_VERSION(0,0,0);
     appInfo.pEngineName = "my first vulkan engine";
@@ -51,6 +75,7 @@ int main() {
     {
         std::cout<<"VK_FAILURE"<<std::endl;
     }
+    
     uint32_t amountofphysicaldevices=0;
     result=vkEnumeratePhysicalDevices(instance,&amountofphysicaldevices,NULL);
     if(result!=VK_SUCCESS)
@@ -58,8 +83,12 @@ int main() {
             std::cout<<"VK_FAILURE"<<std::endl;
     }
     std::cout<<"how many graphics card do I have "<<amountofphysicaldevices<<std::endl;
-    VkPhysicalDevice* physicaldevices = new VkPhysicalDevice[amountofphysicaldevices];
-    result=vkEnumeratePhysicalDevices(instance,&amountofphysicaldevices,physicaldevices);
+    
+    
+    
+    std::vector<VkPhysicalDevice> physicaldevices;
+    physicaldevices.resize(amountofphysicaldevices);
+    result=vkEnumeratePhysicalDevices(instance,&amountofphysicaldevices,physicaldevices.data());
     if(result!=VK_SUCCESS)
     {
             std::cout<<"VK_FAILURE"<<std::endl;
@@ -70,7 +99,11 @@ int main() {
     }
     VkPhysicalDeviceFeatures features;
     vkGetPhysicalDeviceFeatures(physicaldevices[0],&features);
+    
+    
     std::cout<<"Is geometry shader active "<<features.geometryShader<<std::endl;
+    
+    
     VkPhysicalDeviceMemoryProperties memprop; 
     vkGetPhysicalDeviceMemoryProperties(physicaldevices[0],&memprop);
     std::cout<<"count of heap memory in bytes "<<memprop.memoryHeapCount<<std::endl;
@@ -80,8 +113,9 @@ int main() {
     {
             std::cout<<"VK_FAILURE"<<std::endl;
     }
-    VkQueueFamilyProperties *queuefamilyProperties = new VkQueueFamilyProperties[amountofqueueFamilies];
-    vkGetPhysicalDeviceQueueFamilyProperties(physicaldevices[0],&amountofqueueFamilies,queuefamilyProperties);
+    std::vector<VkQueueFamilyProperties> queuefamilyProperties; 
+     queuefamilyProperties.resize(amountofqueueFamilies);
+    vkGetPhysicalDeviceQueueFamilyProperties(physicaldevices[0],&amountofqueueFamilies,queuefamilyProperties.data());
     if(result!=VK_SUCCESS)
     {
             std::cout<<"VK_FAILURE"<<std::endl;
@@ -94,22 +128,85 @@ int main() {
         std::cout<<"Queue FAMILY #"<<i<<std::endl;
         std::cout<<"VK_QUEUE_GRAPHICS_BIT "<<(queuefamilyProperties[i].queueFlags&VK_QUEUE_GRAPHICS_BIT);
     }
+    const std::vector<const char *> validationLayers={"VK_LAYER_LUNAG_standrad_validation"};
+    float qprioriorities[]={1.0f,1.0f,1.0f,1.0f};
     VkDeviceQueueCreateInfo devicequeuecreateinfo;
     devicequeuecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     devicequeuecreateinfo.pNext=NULL;
     devicequeuecreateinfo.flags= 0;
     devicequeuecreateinfo.queueFamilyIndex=0;
     devicequeuecreateinfo.queueCount=4;
-    devicequeuecreateinfo.pQueuePriorities=NULL;
+    devicequeuecreateinfo.pQueuePriorities=qprioriorities;
+    
+    VkPhysicalDeviceFeatures usedfeatures={};
+    
+    VkDeviceCreateInfo information;
+    information.sType=VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    information.pNext=NULL;
+    information.flags=0;
+    information.queueCreateInfoCount=1;
+    information.pQueueCreateInfos=&devicequeuecreateinfo;
+    information.enabledLayerCount=validationLayers.size();
+    information.ppEnabledLayerNames=validationLayers.data();
+    information.enabledExtensionCount=0;
+    information.ppEnabledExtensionNames=NULL;
+    information.pEnabledFeatures=&usedfeatures;
     
     
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    GLFWwindow* window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
+    
+    result=vkCreateDevice(physicaldevices[0],&information,NULL,&dev);
+    if(result!=VK_SUCCESS)
+    {
+        
+    }
+   VkQueue queue;
+   vkGetDeviceQueue(dev,0,0,&queue);
+   
+    uint amountofLayers=0;
+    vkEnumerateInstanceLayerProperties(&amountofLayers,NULL);
+    std::unique_ptr<VkLayerProperties[]> layers{new VkLayerProperties[amountofLayers]};
+    vkEnumerateInstanceLayerProperties(&amountofLayers,layers.get());
+    
+    
+    std::cout<<"amount of layers"<< amountofLayers<<std::endl;
+    for(int i=0 ;i< amountofLayers;i++)
+    {
+        std::cout<< "name of the layer"<<layers[i].layerName<<std::endl;
+        std::cout<< "specification version"<<layers[i].specVersion<<std::endl;
+        std::cout<< "implementation version"<<layers[i].implementationVersion<<std::endl;
+        std::cout<< "description"<<layers[i].description<<std::endl;
+    }
+    
+    uint32_t amountOfExtensions = 0;
+    vkEnumerateInstanceExtensionProperties(nullptr, &amountOfExtensions , nullptr);
+    std::unique_ptr<VkExtensionProperties[]> extensions{new VkExtensionProperties[amountOfExtensions]};
+    vkEnumerateInstanceExtensionProperties(nullptr, &amountOfExtensions , extensions.get());
+    
+    std::cout << amountOfExtensions << " extensions supported" << std::endl;
+    for(int i=0;i<amountOfExtensions;i++)
+    {
+        std::cout<<std::endl;
+        std::cout<<"NAME: "<<extensions[i].extensionName<<std::endl;
+    }
+    
+}
+void stopVulkan()
+{
+    vkDeviceWaitIdle(dev);
+    vkDestroyDevice(dev,nullptr);
+    vkDestroyInstance(instance,nullptr);
+}
 
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
+int main() {
+    startGLfw();
+    startVulkan();
+    gameloop();
+    stopVulkan();
+    stopGLfw();
     
-    std::cout << extensionCount << " extensions supported" << std::endl;
+    
+
+    
     /* today i will implement spherical polar co-ordinate system*/
     float r,x,y,z,phi,theta;
     z = r*cos(theta);
@@ -138,14 +235,6 @@ int main() {
     glm::mat4 matrix;
     glm::vec4 vec;
     auto test = matrix * vec;
-
-    while(!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-    }
-    delete []queuefamilyProperties;
-    glfwDestroyWindow(window);
-
-    glfwTerminate();
-
+    
     return 0;
 }
