@@ -12,6 +12,7 @@
 #include <limits>
 #include <iostream>
 VkInstance instance;
+VkSurfaceKHR surface;
 VkDevice dev;
 GLFWwindow* window;
 void printstats(VkPhysicalDevice &device)
@@ -31,21 +32,22 @@ void startGLfw()
 {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint(GLFW_RESIZABLE,GLFW_FALSE);
     window = glfwCreateWindow(800, 600, "Vulkan window", nullptr, nullptr);
 
 }
 void stopGLfw()
 {
-    while(!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-    }
+  
     
     glfwDestroyWindow(window);
     glfwTerminate();
-}
+} 
 void gameloop()
 {
-    
+    while(!glfwWindowShouldClose(window)) {
+        glfwPollEvents();
+    }  
 }
 void startVulkan()
 {
@@ -58,24 +60,30 @@ void startVulkan()
     appInfo.engineVersion=VK_MAKE_VERSION(1,0,0);
     appInfo.apiVersion=VK_API_VERSION_1_0;
     
-    VkInstanceCreateInfo instanceinfo;
+    uint32_t amountofGlfwExtensions=0;
+    auto glfwExtensions=glfwGetRequiredInstanceExtensions(&amountofGlfwExtensions);
     
+    VkInstanceCreateInfo instanceinfo;
     instanceinfo.sType= VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     instanceinfo.pNext=NULL;
     instanceinfo.flags=0;
     instanceinfo.pApplicationInfo=&appInfo;
     instanceinfo.enabledLayerCount=0;
     instanceinfo.ppEnabledLayerNames=NULL;
-    instanceinfo.enabledExtensionCount=0;
-    instanceinfo.ppEnabledExtensionNames=NULL;
+    instanceinfo.enabledExtensionCount=amountofGlfwExtensions;
+    instanceinfo.ppEnabledExtensionNames=glfwExtensions;
     VkResult result=vkCreateInstance(&instanceinfo,NULL,&instance);
-    
-    
     if(result!=VK_SUCCESS)
     {
         std::cout<<"VK_FAILURE"<<std::endl;
     }
     
+    result = glfwCreateWindowSurface(instance,window,nullptr,&surface);
+    if(result!=VK_SUCCESS)
+    {
+        std::cout<<"VK_FAILURE"<<std::endl;
+    }
+ 
     uint32_t amountofphysicaldevices=0;
     result=vkEnumeratePhysicalDevices(instance,&amountofphysicaldevices,NULL);
     if(result!=VK_SUCCESS)
@@ -128,7 +136,32 @@ void startVulkan()
         std::cout<<"Queue FAMILY #"<<i<<std::endl;
         std::cout<<"VK_QUEUE_GRAPHICS_BIT "<<(queuefamilyProperties[i].queueFlags&VK_QUEUE_GRAPHICS_BIT);
     }
-    const std::vector<const char *> validationLayers={"VK_LAYER_LUNAG_standrad_validation"};
+    
+    
+    VkSurfaceCapabilitiesKHR surfacecapabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicaldevices[0],surface,&surfacecapabilities);
+    std::cout<<surfacecapabilities.minImageCount<<std::endl;
+    std::cout<<surfacecapabilities.maxImageCount<<std::endl;
+    std::cout<<surfacecapabilities.currentExtent.width<<surfacecapabilities.currentExtent.height<<std::endl;
+    std::cout<<surfacecapabilities.minImageExtent.width<<surfacecapabilities.minImageExtent.height<<std::endl;
+    std::cout<<surfacecapabilities.maxImageExtent.width<<surfacecapabilities.maxImageExtent.height<<std::endl;
+    std::cout<<surfacecapabilities.maxImageArrayLayers<<std::endl;
+    std::cout<<surfacecapabilities.supportedTransforms<<std::endl;
+    std::cout<<surfacecapabilities.currentTransform<<std::endl;
+    std::cout<<surfacecapabilities.supportedCompositeAlpha<<std::endl;
+    std::cout<<surfacecapabilities.supportedUsageFlags<<std::endl;
+    
+    uint32_t amountsofformats=0;
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicaldevices[0],surface,&amountsofformats,nullptr);
+    std::vector<VkSurfaceFormatKHR> surfaceformat;
+    surfaceformat.resize(amountsofformats);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(physicaldevices[0],surface,&amountsofformats,surfaceformat.data());
+    
+    for(auto &r : surfaceformat)
+    {
+        std::cout<<"surface formats "<< r.format <<std::endl;
+    }
+    const std::vector<const char *> validationLayers={"VK_LAYER_<<std::endlLUNAG_standrad_validation"};
     float qprioriorities[]={1.0f,1.0f,1.0f,1.0f};
     VkDeviceQueueCreateInfo devicequeuecreateinfo;
     devicequeuecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -194,6 +227,7 @@ void stopVulkan()
 {
     vkDeviceWaitIdle(dev);
     vkDestroyDevice(dev,nullptr);
+    vkDestroySurfaceKHR(instance,surface,nullptr);
     vkDestroyInstance(instance,nullptr);
 }
 
