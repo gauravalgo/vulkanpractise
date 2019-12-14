@@ -15,6 +15,8 @@ VkInstance instance;
 VkSurfaceKHR surface;
 VkDevice dev;
 GLFWwindow* window;
+const uint32_t WIDTH = 400;
+const uint32_t HEIGHT = 300;
 void printstats(VkPhysicalDevice &device)
 {
     VkPhysicalDeviceProperties properties;
@@ -137,6 +139,11 @@ void startVulkan()
         std::cout<<"VK_QUEUE_GRAPHICS_BIT "<<(queuefamilyProperties[i].queueFlags&VK_QUEUE_GRAPHICS_BIT);
     }
     
+   /* VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo = {};
+    surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
+    surfaceCreateInfo.display = display;
+    surfaceCreateInfo.surface = window;
+    err = vkCreateWaylandSurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface);*/
     
     VkSurfaceCapabilitiesKHR surfacecapabilities;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicaldevices[0],surface,&surfacecapabilities);
@@ -161,7 +168,19 @@ void startVulkan()
     {
         std::cout<<"surface formats "<< r.format <<std::endl;
     }
-    const std::vector<const char *> validationLayers={"VK_LAYER_<<std::endlLUNAG_standrad_validation"};
+    
+    uint32_t amountofpresentationmodes=0;
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicaldevices[0],surface,&amountofpresentationmodes,nullptr);
+    std::vector<VkPresentModeKHR> presentmodes;
+    presentmodes.resize(amountofpresentationmodes);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(physicaldevices[0],surface,&amountofpresentationmodes,presentmodes.data());
+    for(auto &r : presentmodes)
+    {
+        std::cout<<"presentation modes"<< r<<std::endl;
+    }
+    
+    
+    const std::vector<const char *> validationLayers={"VK_LAYER_LUNARG_standard_validation"};
     float qprioriorities[]={1.0f,1.0f,1.0f,1.0f};
     VkDeviceQueueCreateInfo devicequeuecreateinfo;
     devicequeuecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -221,6 +240,27 @@ void startVulkan()
         std::cout<<std::endl;
         std::cout<<"NAME: "<<extensions[i].extensionName<<std::endl;
     }
+    
+    VkSwapchainCreateInfoKHR swapchaincreateinfo;
+    swapchaincreateinfo.sType=VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    swapchaincreateinfo.pNext=nullptr;
+    swapchaincreateinfo.flags=0;
+    swapchaincreateinfo.surface=surface;
+    swapchaincreateinfo.minImageCount=3;
+    swapchaincreateinfo.imageFormat=VK_FORMAT_B8G8R8A8_UNORM;
+    swapchaincreateinfo.imageColorSpace=VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+    swapchaincreateinfo.imageExtent=VkExtent2D{WIDTH,HEIGHT};
+    swapchaincreateinfo.imageArrayLayers=1;
+    swapchaincreateinfo.imageUsage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+    swapchaincreateinfo.imageSharingMode=VK_SHARING_MODE_EXCLUSIVE;
+    swapchaincreateinfo.queueFamilyIndexCount=;
+    swapchaincreateinfo.pQueueFamilyIndices=nullptr;
+    swapchaincreateinfo.preTransform= VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
+    swapchaincreateinfo.compositeAlpha=;VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapchaincreateinfo.presentMode=VK_PRESENT_MODE_MAILBOX_KHR;
+    swapchaincreateinfo.clipped=VK_TRUE;
+    swapchaincreateinfo.oldSwapchain=VK_NULL_HANDLE;
+    
     
 }
 void stopVulkan()
