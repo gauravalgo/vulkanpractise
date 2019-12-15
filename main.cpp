@@ -14,6 +14,7 @@
 VkInstance instance;
 VkSurfaceKHR surface;
 VkDevice dev;
+VkSwapchainKHR swapchain;
 GLFWwindow* window;
 const uint32_t WIDTH = 400;
 const uint32_t HEIGHT = 300;
@@ -181,6 +182,7 @@ void startVulkan()
     
     
     const std::vector<const char *> validationLayers={"VK_LAYER_LUNARG_standard_validation"};
+    const std::vector<const char *> deviceExtensions={"VK_KHR_SWAPCHAIN_EXTENSION_NAME"};
     float qprioriorities[]={1.0f,1.0f,1.0f,1.0f};
     VkDeviceQueueCreateInfo devicequeuecreateinfo;
     devicequeuecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -204,7 +206,23 @@ void startVulkan()
     information.ppEnabledExtensionNames=NULL;
     information.pEnabledFeatures=&usedfeatures;
     
+    VkDeviceCreateInfo devicecreateinfo;
+    devicecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    devicecreateinfo.pNext=NULL;
+    devicecreateinfo.flags=0;
+    devicecreateinfo.queueCreateInfoCount=1;
+    devicecreateinfo.pQueueCreateInfos=&devicequeuecreateinfo;
+    devicecreateinfo.enabledLayerCount=deviceExtensions.size();
+    devicecreateinfo.ppEnabledLayerNames=deviceExtensions.data();
+    devicecreateinfo.enabledExtensionCount=0;
+    devicecreateinfo.ppEnabledExtensionNames=NULL;
+    devicecreateinfo.pEnabledFeatures=&usedfeatures;
     
+    result=vkCreateDevice(physicaldevices[0],&devicecreateinfo,NULL,&dev);
+    if(result!=VK_SUCCESS)
+    {
+        
+    }
     
     result=vkCreateDevice(physicaldevices[0],&information,NULL,&dev);
     if(result!=VK_SUCCESS)
@@ -214,6 +232,12 @@ void startVulkan()
    VkQueue queue;
    vkGetDeviceQueue(dev,0,0,&queue);
    
+   VkBool32 surfacesupport=false;
+   result = vkGetPhysicalDeviceSurfaceSupportKHR(physicaldevices[0],0,surface,&surfacesupport);
+    if(result!=VK_SUCCESS)
+    {
+        
+    }
     uint amountofLayers=0;
     vkEnumerateInstanceLayerProperties(&amountofLayers,NULL);
     std::unique_ptr<VkLayerProperties[]> layers{new VkLayerProperties[amountofLayers]};
@@ -256,16 +280,46 @@ void startVulkan()
     swapchaincreateinfo.queueFamilyIndexCount=;
     swapchaincreateinfo.pQueueFamilyIndices=nullptr;
     swapchaincreateinfo.preTransform= VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
-    swapchaincreateinfo.compositeAlpha=;VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+    swapchaincreateinfo.compositeAlpha=VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     swapchaincreateinfo.presentMode=VK_PRESENT_MODE_MAILBOX_KHR;
     swapchaincreateinfo.clipped=VK_TRUE;
     swapchaincreateinfo.oldSwapchain=VK_NULL_HANDLE;
     
-    
+    result=vkCreateSwapchainKHR(dev,&swapchaincreateinfo,nullptr,&swapchain);
+     if(result!=VK_SUCCESS)
+    {
+        
+    }
+    uint32_t amountofimagesinswapchain=0;
+    vkGetSwapchainImagesKHR(dev,swapchain,&amountofimagesinswapchain,nullptr);
+    std::vector<VkImage> swapImage;
+    swapImage.resize(amountofimagesinswapchain);
+    result=vkGetSwapchainImagesKHR(dev,swapchain,&amountofimagesinswapchain,swapImage.data());
+    if(result!=VK_SUCCESS)
+    {
+        
+    }
+    VkImageViewCreateInfo imagecreateinfo;
+    imagecreateinfo.sType=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imagecreateinfo.pNext=nullptr;
+    imagecreateinfo.flags=0;
+    imagecreateinfo.image= *swapImage.data();
+    imagecreateinfo.viewType=VK_IMAGE_VIEW_TYPE_2D;
+    imagecreateinfo.format=VK_FORMAT_B8G8R8A8_UNORM;
+    imagecreateinfo.components.r=VK_COMPONENT_SWIZZLE_IDENTITY;
+    imagecreateinfo.components.g=VK_COMPONENT_SWIZZLE_IDENTITY;
+    imagecreateinfo.components.b=VK_COMPONENT_SWIZZLE_IDENTITY;
+    imagecreateinfo.components.a=VK_COMPONENT_SWIZZLE_IDENTITY;
+    imagecreateinfo.subresourceRange.aspectMask=VK_IMAGE_ASPECT_COLOR_BIT;
+    imagecreateinfo.subresourceRange.baseArrayLayer=0;
+    imagecreateinfo.subresourceRange.baseMipLevel=0;
+    imagecreateinfo.subresourceRange.layerCount=1;
+    imagecreateinfo.subresourceRange.levelCount=1;
 }
 void stopVulkan()
 {
     vkDeviceWaitIdle(dev);
+    vkDestroySwapchainKHR(dev,swapchain,nullptr);
     vkDestroyDevice(dev,nullptr);
     vkDestroySurfaceKHR(instance,surface,nullptr);
     vkDestroyInstance(instance,nullptr);
