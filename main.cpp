@@ -140,7 +140,7 @@ void startVulkan()
         std::cout<<"VK_QUEUE_GRAPHICS_BIT "<<(queuefamilyProperties[i].queueFlags&VK_QUEUE_GRAPHICS_BIT);
     }
     
-   /* VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo = {};
+  /* VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo = {};
     surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
     surfaceCreateInfo.display = display;
     surfaceCreateInfo.surface = window;
@@ -200,35 +200,35 @@ void startVulkan()
     information.flags=0;
     information.queueCreateInfoCount=1;
     information.pQueueCreateInfos=&devicequeuecreateinfo;
-    information.enabledLayerCount=validationLayers.size();
-    information.ppEnabledLayerNames=validationLayers.data();
-    information.enabledExtensionCount=0;
-    information.ppEnabledExtensionNames=NULL;
+    information.enabledLayerCount=0;
+    information.ppEnabledLayerNames=nullptr;
+    information.enabledExtensionCount=validationLayers.size();
+    information.ppEnabledExtensionNames=validationLayers.data();
     information.pEnabledFeatures=&usedfeatures;
     
     VkDeviceCreateInfo devicecreateinfo;
     devicecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    devicecreateinfo.pNext=NULL;
+    devicecreateinfo.pNext=nullptr;
     devicecreateinfo.flags=0;
     devicecreateinfo.queueCreateInfoCount=1;
     devicecreateinfo.pQueueCreateInfos=&devicequeuecreateinfo;
-    devicecreateinfo.enabledLayerCount=deviceExtensions.size();
-    devicecreateinfo.ppEnabledLayerNames=deviceExtensions.data();
-    devicecreateinfo.enabledExtensionCount=0;
-    devicecreateinfo.ppEnabledExtensionNames=NULL;
+    devicecreateinfo.enabledLayerCount=0;
+    devicecreateinfo.ppEnabledLayerNames=nullptr;
+    devicecreateinfo.enabledExtensionCount=deviceExtensions.size();
+    devicecreateinfo.ppEnabledExtensionNames=deviceExtensions.data();
     devicecreateinfo.pEnabledFeatures=&usedfeatures;
     
     result=vkCreateDevice(physicaldevices[0],&devicecreateinfo,NULL,&dev);
     if(result!=VK_SUCCESS)
     {
-        
+        std::cout<<"failure"<<std::endl;
     }
-    
+  /*  
     result=vkCreateDevice(physicaldevices[0],&information,NULL,&dev);
     if(result!=VK_SUCCESS)
     {
         
-    }
+    }*/
    VkQueue queue;
    vkGetDeviceQueue(dev,0,0,&queue);
    
@@ -264,7 +264,7 @@ void startVulkan()
         std::cout<<std::endl;
         std::cout<<"NAME: "<<extensions[i].extensionName<<std::endl;
     }
-    
+   
     VkSwapchainCreateInfoKHR swapchaincreateinfo;
     swapchaincreateinfo.sType=VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     swapchaincreateinfo.pNext=nullptr;
@@ -277,19 +277,20 @@ void startVulkan()
     swapchaincreateinfo.imageArrayLayers=1;
     swapchaincreateinfo.imageUsage=VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
     swapchaincreateinfo.imageSharingMode=VK_SHARING_MODE_EXCLUSIVE;
-    swapchaincreateinfo.queueFamilyIndexCount=;
+    swapchaincreateinfo.queueFamilyIndexCount=0;
     swapchaincreateinfo.pQueueFamilyIndices=nullptr;
     swapchaincreateinfo.preTransform= VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR;
     swapchaincreateinfo.compositeAlpha=VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    swapchaincreateinfo.presentMode=VK_PRESENT_MODE_MAILBOX_KHR;
+    swapchaincreateinfo.presentMode=VK_PRESENT_MODE_FIFO_KHR;
     swapchaincreateinfo.clipped=VK_TRUE;
     swapchaincreateinfo.oldSwapchain=VK_NULL_HANDLE;
-    
+    std::cout<<"failure 5"<<std::endl;
     result=vkCreateSwapchainKHR(dev,&swapchaincreateinfo,nullptr,&swapchain);
      if(result!=VK_SUCCESS)
     {
-        
+        std::cout<<"failure"<<std::endl;
     }
+    std::cout<<"failure 6"<<std::endl;
     uint32_t amountofimagesinswapchain=0;
     vkGetSwapchainImagesKHR(dev,swapchain,&amountofimagesinswapchain,nullptr);
     std::vector<VkImage> swapImage;
@@ -297,8 +298,9 @@ void startVulkan()
     result=vkGetSwapchainImagesKHR(dev,swapchain,&amountofimagesinswapchain,swapImage.data());
     if(result!=VK_SUCCESS)
     {
-        
+        std::cout<<"failure"<<std::endl;
     }
+     
     VkImageViewCreateInfo imagecreateinfo;
     imagecreateinfo.sType=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imagecreateinfo.pNext=nullptr;
@@ -315,14 +317,17 @@ void startVulkan()
     imagecreateinfo.subresourceRange.baseMipLevel=0;
     imagecreateinfo.subresourceRange.layerCount=1;
     imagecreateinfo.subresourceRange.levelCount=1;
+     std::cout<<"failure 1"<<std::endl;
 }
 void stopVulkan()
 {
+    std::cout<<"failure 2"<<std::endl;
     vkDeviceWaitIdle(dev);
     vkDestroySwapchainKHR(dev,swapchain,nullptr);
     vkDestroyDevice(dev,nullptr);
     vkDestroySurfaceKHR(instance,surface,nullptr);
     vkDestroyInstance(instance,nullptr);
+    std::cout<<"failure 3"<<std::endl;
 }
 
 int main() {
