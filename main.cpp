@@ -143,6 +143,7 @@ void startVulkan()
   /* VkWaylandSurfaceCreateInfoKHR surfaceCreateInfo = {};
     surfaceCreateInfo.sType = VK_STRUCTURE_TYPE_WAYLAND_SURFACE_CREATE_INFO_KHR;
     surfaceCreateInfo.display = display;
+    
     surfaceCreateInfo.surface = window;
     err = vkCreateWaylandSurfaceKHR(instance, &surfaceCreateInfo, nullptr, &surface);*/
     
@@ -182,7 +183,8 @@ void startVulkan()
     
     
     const std::vector<const char *> validationLayers={"VK_LAYER_LUNARG_standard_validation"};
-    const std::vector<const char *> deviceExtensions={"VK_KHR_SWAPCHAIN_EXTENSION_NAME"};
+    std::vector<const char *> deviceExtensions={VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    
     float qprioriorities[]={1.0f,1.0f,1.0f,1.0f};
     VkDeviceQueueCreateInfo devicequeuecreateinfo;
     devicequeuecreateinfo.sType=VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -218,10 +220,10 @@ void startVulkan()
     devicecreateinfo.ppEnabledExtensionNames=deviceExtensions.data();
     devicecreateinfo.pEnabledFeatures=&usedfeatures;
     
-    result=vkCreateDevice(physicaldevices[0],&devicecreateinfo,NULL,&dev);
+    result=vkCreateDevice(physicaldevices[0],&devicecreateinfo,nullptr,&dev);
     if(result!=VK_SUCCESS)
     {
-        std::cout<<"failure"<<std::endl;
+        std::cout<<"failure in create device"<<std::endl;
     }
   /*  
     result=vkCreateDevice(physicaldevices[0],&information,NULL,&dev);
@@ -236,7 +238,7 @@ void startVulkan()
    result = vkGetPhysicalDeviceSurfaceSupportKHR(physicaldevices[0],0,surface,&surfacesupport);
     if(result!=VK_SUCCESS)
     {
-        
+        std::cout<<"failure surface support"<<std::endl;
     }
     uint amountofLayers=0;
     vkEnumerateInstanceLayerProperties(&amountofLayers,NULL);
@@ -284,13 +286,13 @@ void startVulkan()
     swapchaincreateinfo.presentMode=VK_PRESENT_MODE_FIFO_KHR;
     swapchaincreateinfo.clipped=VK_TRUE;
     swapchaincreateinfo.oldSwapchain=VK_NULL_HANDLE;
-    std::cout<<"failure 5"<<std::endl;
+    
     result=vkCreateSwapchainKHR(dev,&swapchaincreateinfo,nullptr,&swapchain);
      if(result!=VK_SUCCESS)
     {
-        std::cout<<"failure"<<std::endl;
+        std::cout<<"failure in swap chain creation"<<std::endl;
     }
-    std::cout<<"failure 6"<<std::endl;
+    
     uint32_t amountofimagesinswapchain=0;
     vkGetSwapchainImagesKHR(dev,swapchain,&amountofimagesinswapchain,nullptr);
     std::vector<VkImage> swapImage;
@@ -298,7 +300,7 @@ void startVulkan()
     result=vkGetSwapchainImagesKHR(dev,swapchain,&amountofimagesinswapchain,swapImage.data());
     if(result!=VK_SUCCESS)
     {
-        std::cout<<"failure"<<std::endl;
+        std::cout<<"failure in swap chain images "<<std::endl;
     }
      
     VkImageViewCreateInfo imagecreateinfo;
@@ -317,17 +319,17 @@ void startVulkan()
     imagecreateinfo.subresourceRange.baseMipLevel=0;
     imagecreateinfo.subresourceRange.layerCount=1;
     imagecreateinfo.subresourceRange.levelCount=1;
-     std::cout<<"failure 1"<<std::endl;
+     
 }
 void stopVulkan()
 {
-    std::cout<<"failure 2"<<std::endl;
+    
     vkDeviceWaitIdle(dev);
     vkDestroySwapchainKHR(dev,swapchain,nullptr);
     vkDestroyDevice(dev,nullptr);
     vkDestroySurfaceKHR(instance,surface,nullptr);
     vkDestroyInstance(instance,nullptr);
-    std::cout<<"failure 3"<<std::endl;
+    
 }
 
 int main() {
