@@ -15,7 +15,9 @@ VkInstance instance;
 VkSurfaceKHR surface;
 VkDevice dev;
 VkSwapchainKHR swapchain;
+VkImageView *imageviews;
 GLFWwindow* window;
+uint32_t amountofimagesinswapchain=0;
 const uint32_t WIDTH = 400;
 const uint32_t HEIGHT = 300;
 void printstats(VkPhysicalDevice &device)
@@ -293,7 +295,7 @@ void startVulkan()
         std::cout<<"failure in swap chain creation"<<std::endl;
     }
     
-    uint32_t amountofimagesinswapchain=0;
+    
     vkGetSwapchainImagesKHR(dev,swapchain,&amountofimagesinswapchain,nullptr);
     std::vector<VkImage> swapImage;
     swapImage.resize(amountofimagesinswapchain);
@@ -303,11 +305,16 @@ void startVulkan()
         std::cout<<"failure in swap chain images "<<std::endl;
     }
      
+    
+    
+    imageviews = new VkImageView[amountofimagesinswapchain];
+    for(int i=0;i<amountofimagesinswapchain;i++)
+    {
     VkImageViewCreateInfo imagecreateinfo;
     imagecreateinfo.sType=VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imagecreateinfo.pNext=nullptr;
     imagecreateinfo.flags=0;
-    imagecreateinfo.image= *swapImage.data();
+    imagecreateinfo.image= swapImage.data()[i];
     imagecreateinfo.viewType=VK_IMAGE_VIEW_TYPE_2D;
     imagecreateinfo.format=VK_FORMAT_B8G8R8A8_UNORM;
     imagecreateinfo.components.r=VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -319,12 +326,26 @@ void startVulkan()
     imagecreateinfo.subresourceRange.baseMipLevel=0;
     imagecreateinfo.subresourceRange.layerCount=1;
     imagecreateinfo.subresourceRange.levelCount=1;
+        
+    result=vkCreateImageView(dev,&imagecreateinfo,nullptr,&imageviews[i]);   
+        if(result!=VK_SUCCESS)
+        {
+            std::cout<<"failure in creating image views "<<std::endl;
+        }
+      
+
+    }
      
 }
 void stopVulkan()
 {
     
     vkDeviceWaitIdle(dev);
+    for(int i=0;i<amountofimagesinswapchain;i++)
+    {
+        vkDestroyImageView(dev,imageviews[i],nullptr);
+    }
+    delete []imageviews;
     vkDestroySwapchainKHR(dev,swapchain,nullptr);
     vkDestroyDevice(dev,nullptr);
     vkDestroySurfaceKHR(instance,surface,nullptr);
